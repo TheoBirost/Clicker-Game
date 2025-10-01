@@ -28,8 +28,8 @@ const props = defineProps<{
         <h4 class="font-bold">{{ objectif.name }}</h4>
         <p class="text-sm">{{ objectif.description }}</p>
       </div>
-      <span v-if="objectif.unlocked" class="text-green-300 font-bold text-xl">✔</span>
-      <span v-else class="text-amber-500  text-xl">✖</span>
+      <span v-if="objectif.unlocked" class="text-green-300 font-bold text-xl">&#10003;</span>
+      <span v-else class="text-red-300 text-xl">&#10007;</span>
     </div>
   </div>
 </template>
