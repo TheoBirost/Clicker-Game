@@ -15,7 +15,7 @@ function closeTrophy() {
 // --------------------
 // Compteur et upgrades
 // --------------------
-const counter = ref(1000000000000000)
+const counter = ref(0)
 const multiUpgrade = ref(1.2) // multiplicateur prix upgrades
 const showUpgrades = ref(false)
 const Rebirth = ref(0)
@@ -77,14 +77,6 @@ const totalCps = computed(() =>
 setInterval(() => {
   counter.value += totalCps.value
 }, 1000)
-
-
-// --------------------
-// Fonction arrondit affichage simple
-// --------------------
-function roundDisplay(n: number) {
-  return Math.floor(n)
-}
 
 // --------------------
 // Fonction pour le Rebirth
@@ -151,7 +143,6 @@ const achievements = ref([
   // 🎭 Fun / Secrets
   { name: "😴 AFK Master", description: "Reste 1 minute sans cliquer", unlocked: false },
   { name: "🐇 Lapin pressé", description: "Fais 100 clics en 10 secondes", unlocked: false },
-  { name: "🎉 Collection complète", description: "Débloque 33 trophées", unlocked: false },
 ])
 
 // --------------------
@@ -209,13 +200,10 @@ const clickTimes = ref<number[]>([])
 
 function checkSpeedClickAchievement() {
   const now = Date.now()
-
   // On ajoute le clic actuel dans le tableau
   clickTimes.value.push(now)
-
   // On garde uniquement les clics des 10 dernières secondes
   clickTimes.value = clickTimes.value.filter(t => now - t <= 10_000)
-
   // Si au moins 100 clics en moins de 10 sec -> débloque succès
   if (clickTimes.value.length >= 100 && !achievements.value[32].unlocked) {
     achievements.value[32].unlocked = true
@@ -242,18 +230,11 @@ function doClick() {
   checkSpeedClickAchievement()
 }
 
-watch(unlockedCount, (newVal) => {
-  if (newVal >= 33 && !achievements.value[33].unlocked) {
-    achievements.value[33].unlocked = true
-  }
-})
-
-
 // Vérification AFK toutes les secondes
 setInterval(() => {
   const now = Date.now()
   const diff = now - lastClickTime.value
-  if (diff >= 60_000 && !achievements.value[31].unlocked) {
+  if (diff >= 600_000 && !achievements.value[31].unlocked) {
     achievements.value[31].unlocked = true
   }
 }, 1000)
@@ -274,11 +255,13 @@ setInterval(() => {
         <h4 class="text-lg text-gray-300">nombre de Rebirth: {{Rebirth}}</h4>
       </div>
 
-      <!-- Bouton CLIC -->
-      <button
-          @click="doClick"
-          class=" w-64 h-64 bg-gray-900 text-white text-3xl font-bold rounded-4xl shadow-2xl hover:bg-white hover:text-black transition transform hover:scale-105 slow-spin ">
-        CLIC !
+      <!-- Bouton Clic -->
+      <button @click="doClick">
+        <img
+            class="w-[450%] text-8xl font-extrabold rounded-full flex items-center justify-center transition transform active:scale-110 slow-spin filter"
+            src="/src/assets/button2.png"
+            alt=""
+            style="filter: hue-rotate(110deg) saturate(300%) brightness(75%) opacity(100%);">
       </button>
     </div>
 
