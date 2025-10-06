@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits, watch } from 'vue'
+import { ref, computed, defineProps, defineEmits, watch, onUnmounted, onMounted } from 'vue'
 import ObjectifList from "./ObjectifList.vue";
+import Start from "./Start.vue";
 
 // Props + emits pour v-model
 const props = defineProps({
-  showTrophy: Boolean
+  showTrophy: Boolean,
+  start: Boolean
 })
 const emit = defineEmits(['update:showTrophy'])
 
@@ -238,6 +240,32 @@ setInterval(() => {
     achievements.value[31].unlocked = true
   }
 }, 1000)
+
+const minutes = ref(0);
+const secondes = ref(0);
+let intervalId = null;
+
+watch(() => props.start, (val) => {
+  if(val) startTimer();
+});
+
+function startTimer() {
+  intervalId = setInterval(() => {
+    secondes.value++;
+    if (secondes.value === 60) {
+      secondes.value = 0;
+      minutes.value++;
+    }
+  }, 1000);
+}
+
+onUnmounted(() => {
+  clearInterval(intervalId);
+});
+
+const formattedTime = computed(() => {
+  return minutes.value.toString().padStart(2,"0") + " : " + secondes.value.toString().padStart(2,"0")
+});
 </script>
 
 <template>
@@ -247,6 +275,7 @@ setInterval(() => {
     <div class="flex flex-col items-center justify-around space-y-12 md:mr-36">
       <!-- Score -->
       <div class="flex flex-col items-center space-y-2">
+        <h2>Timer : {{ formattedTime }}</h2>
         <div class="flex items-center justify-center space-x-2">
           <h2 class="text-4xl font-extrabold">{{ formattedCounter }}</h2>
           <span class="text-2xl font-extrabold bg-white text-black px-3 py-1 rounded-full shadow"> $ </span>
@@ -256,9 +285,9 @@ setInterval(() => {
       </div>
 
       <!-- Bouton Clic -->
-      <button @click="doClick">
+      <button @click="props.start && doClick()">
         <img
-            class="w-[450%] text-8xl font-extrabold rounded-full flex items-center justify-center transition transform active:scale-110 slow-spin filter"
+            :class="['w-[450%] text-8xl font-extrabold rounded-full flex items-center justify-center transition transform active:scale-110 filter', props.start ? 'slow-spin' : '']"
             src="/src/assets/button2.png"
             alt=""
             style="filter: hue-rotate(110deg) saturate(300%) brightness(75%) opacity(100%);">
@@ -267,40 +296,70 @@ setInterval(() => {
 
     <!-- Colonne droite = améliorations -->
     <div class="hidden lg:flex border border-gray-800 rounded-xl p-6 shadow-lg  flex-col space-y-4 max-h-[90vh] overflow-y-auto">
-      <h3 class="flex text-xl font-bold justify-center items-center text-center text-gray-200 gap-1 ">
-        Améliorations
-      </h3>
-
-      <!-- Liste upgrades -->
-      <div v-for="(up, i) in upgrades" :key="i">
-        <button
-            @click="buyUpgrade(i)"
-            :class="[
-    'w-full px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
-    counter >= up.price
-      ? 'bg-white text-black hover:bg-gray-200'
-      : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-  ]"
-            :disabled="counter < up.price">
-          <span class="text-xl" >{{ up.name }}</span>
-          <span class="text-sm">{{formatNumber(up.cps) }} / sec</span>
-          <span class="text-sm">{{ formatNumber(up.price) }}</span>
-          <span class="text-xs text-gray-400">Lvl {{ up.level }}</span>
-        </button>
+      <div class="flex flex-col items-center space-y-2">
+        <h3 class="flex text-xl font-bold justify-center items-center text-center text-gray-200 gap-1 ">
+          Améliorations
+        </h3>
       </div>
 
+      <!-- Liste upgrades -->
+      <div v-for="(up, i) in upgrades" :key="i" class="space-y-4">
+        <button
+            @click="buyUpgrade(i)"
+            :disabled="counter < up.price"
+            :class="[
+      'w-full flex items-center p-4 rounded-xl transition-all',
+      counter >= up.price
+       ? 'bg-cyan-400 text-black hover:bg-cyan-300'
+       : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+    ]"
+        >
+          <!-- Bloc gauche : image + niveau -->
+          <div class="relative flex flex-col items-center">
+      <span class="absolute -top-3 left-1 text-xs font-bold gap-0.5">
+        Lvl {{ up.level }}
+      </span>
+            <!-- Image dynamique -->
+            <div class="w-16 h-16 mt-3  rounded-lg overflow-hidden flex items-center justify-center">
+              <img
+                  :src="`src/img/upgrade${i + 1}.svg`"
+                  :alt="up.name"
+                  class="object-cover w-full h-full"
+              />
+            </div>
+          </div>
+
+          <!-- Bloc droit : nom, cps, prix -->
+          <div class="flex flex-col justify-center flex-1 ml-4  rounded-lg p-3  text-center">
+            <span class="text-lg font-semibold">{{ up.name }}</span>
+            <span class="text-sm">{{ formatNumber(up.cps) }} / sec</span>
+            <span class="text-sm">{{ formatNumber(up.price) }}</span>
+          </div>
+        </button>
+      </div>
       <!-- Rebirth -->
       <button
-          v-on:click="doRebirth"
+          @click="doRebirth"
+          :disabled="counter < RebirthPrice"
           :class="[
-        'px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
-        counter >= RebirthPrice
-            ? 'bg-white text-black hover:bg-gray-200'
-            : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
-          :disabled="counter < RebirthPrice">
-        <span class="text-xl">Rebirth</span>
-        <span class="text-sm">+3 / clic </span>
-        <span class="text-sm">{{ formatNumber(RebirthPrice) }}</span>
+          'w-full flex items-center p-4 rounded-xl transition-all',
+          counter >= RebirthPrice
+            ? 'bg-white text-black hover:bg-gray-200 shadow-lg'
+            : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+        ]"
+      >
+        <div class="relative flex flex-col items-center">
+          <span class="absolute -top-3 left-1 text-xs font-bold text-gray-600">Rebirth</span>
+          <div class="w-16 h-16 mt-3 rounded-lg overflow-hidden flex items-center justify-center">
+            <img src="../assets/rebirth.svg" alt="Rebirth Icon" class="object-cover w-full h-full" />
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-center flex-1 ml-4 text-center">
+          <span class="text-lg font-semibold">Rebirth</span>
+          <span class="text-sm">+3 / clic</span>
+          <span class="text-sm">{{ formatNumber(RebirthPrice) }}</span>
+        </div>
       </button>
     </div>
 
@@ -308,7 +367,7 @@ setInterval(() => {
     <button
         @click="showUpgrades = true"
         class=" absolute flex items-center justify-center w-12 h-12 xs:flex top-38 left-6  lg:hidden bg-gray-800 text-white rounded-lg shadow-md hover:bg-white hover:text-black transition transform hover:scale-105">
-      ⚡
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap-icon lucide-zap"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
     </button>
 
     <!-- Fenêtre/modal des améliorations (mobile) -->
@@ -321,36 +380,65 @@ setInterval(() => {
         <h3 class="flex text-xl font-bold justify-center items-center text-center text-gray-200 gap-1 ">
           Améliorations
         </h3>
-
         <!-- Liste upgrades mobile -->
-        <div v-for="(up, i) in upgrades" :key="'m' + i">
+        <div v-for="(up, i) in upgrades" :key="'m' + i" class="space-y-4">
           <button
               @click="buyUpgrade(i)"
+              :disabled="counter < up.price"
               :class="[
-              'w-full px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
-              counter >= up.price
-                ? 'bg-white text-black hover:bg-gray-200'
-                : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
-              :disabled="counter < up.price">
-            <span>{{ up.name }}</span>
-            <span class="text-sm">+{{ up.cps }} / sec</span>
-            <span class="text-sm">{{ formatNumber(up.price) }}</span>
-            <span class="text-xs text-gray-400">Lvl {{ up.level }}</span>
+      'w-full flex items-center p-3 rounded-xl transition-all',
+      counter >= up.price
+        ? 'bg-cyan-400 text-black hover:bg-cyan-300'
+        : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+    ]"
+          >
+            <!-- Bloc gauche : image + niveau -->
+            <div class="relative flex flex-col items-center">
+      <span class="absolute -top-2 left-1 text-[10px] font-bold">
+        Lvl {{ up.level }}
+      </span>
+              <!-- Image dynamique -->
+              <div class="w-12 h-12 mt-2 rounded-lg overflow-hidden flex items-center justify-center">
+                <img
+                    :src="`src/img/upgrade${i + 1}.svg`"
+                    :alt="up.name"
+                    class="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+
+            <!-- Bloc droit : nom, cps, prix -->
+            <div class="flex flex-col justify-center flex-1 ml-3 text-center">
+              <span class="text-sm font-semibold">{{ up.name }}</span>
+              <span class="text-xs">{{ formatNumber(up.cps) }} / sec</span>
+              <span class="text-xs">{{ formatNumber(up.price) }}</span>
+            </div>
           </button>
         </div>
 
-        <!-- Rebirth -->
+        <!-- Rebirth mobile -->
         <button
-            v-on:click="doRebirth"
+            @click="doRebirth"
+            :disabled="counter < RebirthPrice"
             :class="[
-          'px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
-          counter >= RebirthPrice
-              ? 'bg-white text-black hover:bg-gray-200'
-              : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
-            :disabled="counter < RebirthPrice">
-          <span>Rebirth</span>
-          <span class="text-sm">+3 / clic </span>
-          <span class="text-sm">{{ formatNumber(RebirthPrice) }}</span>
+    'w-full flex items-center p-3 rounded-xl transition-all',
+    counter >= RebirthPrice
+      ? 'bg-white text-black hover:bg-gray-200 shadow-md shadow-yellow-300/40'
+      : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+  ]"
+        >
+          <div class="relative flex flex-col items-center">
+            <span class="absolute -top-2 left-1 text-[10px] font-bold text-gray-600">Rebirth</span>
+            <div class="w-12 h-12 mt-2 rounded-lg overflow-hidden flex items-center justify-center">
+              <img src="../assets/rebirth.svg" alt="Rebirth Icon" class="object-cover w-full h-full" />
+            </div>
+          </div>
+
+          <div class="flex flex-col justify-center flex-1 ml-3 text-center">
+            <span class="text-sm font-semibold">Rebirth</span>
+            <span class="text-xs">+3 / clic</span>
+            <span class="text-xs">{{ formatNumber(RebirthPrice) }}</span>
+          </div>
         </button>
       </div>
     </div>
