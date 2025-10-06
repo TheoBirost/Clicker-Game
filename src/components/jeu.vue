@@ -20,7 +20,7 @@ const multiUpgrade = ref(1.2) // multiplicateur prix upgrades
 const showUpgrades = ref(false)
 const Rebirth = ref(0)
 
-const RebirthPrice = computed(() => (Rebirth.value + 1) * 1_000_000)
+const RebirthPrice = computed(() => (Rebirth.value + 1) * 15_000_000_000_000)
 
 // Prix affichés arrondis + suffixes
 function formatNumber(n: number): string {
@@ -141,7 +141,7 @@ const achievements = ref([
   { name: "🌍 Billionnaire mondial", description: "Accumule 1 000 000 000 000 000 $", unlocked: false },
 
   // 🎭 Fun / Secrets
-  { name: "😴 AFK Master", description: "Reste 1 minute sans cliquer", unlocked: false },
+  { name: "😴 AFK Master", description: "Reste 10 minute sans cliquer", unlocked: false },
   { name: "🐇 Lapin pressé", description: "Fais 100 clics en 10 secondes", unlocked: false },
 ])
 
@@ -202,9 +202,9 @@ function checkSpeedClickAchievement() {
   const now = Date.now()
   // On ajoute le clic actuel dans le tableau
   clickTimes.value.push(now)
-  // On garde uniquement les clics des 10 dernières secondes
-  clickTimes.value = clickTimes.value.filter(t => now - t <= 10_000)
-  // Si au moins 100 clics en moins de 10 sec -> débloque succès
+  // On garde uniquement les clics des 15 dernières secondes
+  clickTimes.value = clickTimes.value.filter(t => now - t <= 15_000)
+  // Si au moins 100 clics en moins de 15 sec -> débloque succès
   if (clickTimes.value.length >= 100 && !achievements.value[32].unlocked) {
     achievements.value[32].unlocked = true
   }
@@ -225,7 +225,7 @@ const lastClickTime = ref(Date.now())
 // Fonction clic principal (mise à jour avec AFK)
 // --------------------
 function doClick() {
-  counter.value += 1 + Rebirth.value
+  counter.value += 1 + Rebirth.value * 3
   lastClickTime.value = Date.now()
   checkSpeedClickAchievement()
 }
@@ -234,7 +234,7 @@ function doClick() {
 setInterval(() => {
   const now = Date.now()
   const diff = now - lastClickTime.value
-  if (diff >= 600_000 && !achievements.value[31].unlocked) {
+  if (diff >= 6_000_000 && !achievements.value[31].unlocked) {
     achievements.value[31].unlocked = true
   }
 }, 1000)
@@ -252,7 +252,7 @@ setInterval(() => {
           <span class="text-2xl font-extrabold bg-white text-black px-3 py-1 rounded-full shadow"> $ </span>
         </div>
         <h3 class="text-lg text-gray-300">{{ formatNumber(totalCps) }} / sec</h3>
-        <h4 class="text-lg text-gray-300">nombre de Rebirth: {{Rebirth}}</h4>
+        <h4 class="text-lg text-gray-300">{{Rebirth}} Rebirth</h4>
       </div>
 
       <!-- Bouton Clic -->
@@ -282,8 +282,8 @@ setInterval(() => {
       : 'bg-gray-800 text-gray-500 cursor-not-allowed'
   ]"
             :disabled="counter < up.price">
-          <span>{{ up.name }}</span>
-          <span class="text-sm">{{up.cps }} / sec</span>
+          <span class="text-xl" >{{ up.name }}</span>
+          <span class="text-sm">{{formatNumber(up.cps) }} / sec</span>
           <span class="text-sm">{{ formatNumber(up.price) }}</span>
           <span class="text-xs text-gray-400">Lvl {{ up.level }}</span>
         </button>
@@ -298,9 +298,9 @@ setInterval(() => {
             ? 'bg-white text-black hover:bg-gray-200'
             : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
           :disabled="counter < RebirthPrice">
-        <span>Rebirth</span>
-        <span class="text-sm">+1 / clic </span>
-        <span class="text-sm">{{ RebirthPrice }}</span>
+        <span class="text-xl">Rebirth</span>
+        <span class="text-sm">+3 / clic </span>
+        <span class="text-sm">{{ formatNumber(RebirthPrice) }}</span>
       </button>
     </div>
 
@@ -327,7 +327,7 @@ setInterval(() => {
           <button
               @click="buyUpgrade(i)"
               :class="[
-              'px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
+              'w-full px-6 py-4 rounded-lg transition flex flex-col items-center space-y-1 font-semibold',
               counter >= up.price
                 ? 'bg-white text-black hover:bg-gray-200'
                 : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
@@ -349,8 +349,8 @@ setInterval(() => {
               : 'bg-gray-800 text-gray-500 cursor-not-allowed']"
             :disabled="counter < RebirthPrice">
           <span>Rebirth</span>
-          <span class="text-sm">+1 / clic </span>
-          <span class="text-sm">{{ RebirthPrice }}</span>
+          <span class="text-sm">+3 / clic </span>
+          <span class="text-sm">{{ formatNumber(RebirthPrice) }}</span>
         </button>
       </div>
     </div>
