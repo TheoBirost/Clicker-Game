@@ -1,10 +1,34 @@
 <!doctype html>
-<html lang="en">
+<!-- Set the language to French for better accessibility and SEO for French-speaking users -->
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Performance: Preload the LCP image to load it as fast as possible. -->
+    <link rel="preload" href="/src/assets/button2.png" as="image">
+
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Vue</title>
+
+    <!-- SEO: Title - A unique and descriptive title is crucial for search engines. -->
+    <title>Clicker Game - Devenez le Dieu du Clic</title>
+
+    <!-- SEO: Meta Description - This description appears in search results. It should be concise and compelling. -->
+    <meta name="description" content="Plongez dans Clicker Game, un jeu de clic addictif. Améliorez vos équipements, débloquez des trophées et grimpez dans le classement. Commencez à cliquer maintenant !" />
+
+    <!-- SEO & Social: Open Graph tags for better sharing on social media (Facebook, Discord, etc.) -->
+    <meta property="og:title" content="Clicker Game - Devenez le Dieu du Clic" />
+    <meta property="og:description" content="Un jeu de clic addictif où vous amassez une fortune en cliquant et en améliorant vos outils." />
+    <meta property="og:type" content="website" />
+    <!-- <meta property="og:image" content="/path/to/your/social-image.png" /> -->
+    <!-- <meta property="og:url" content="https://your-game-url.com" /> -->
+
+    <!-- SEO & Social: Twitter Card tags for better sharing on Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Clicker Game - Devenez le Dieu du Clic" />
+    <meta name="twitter:description" content="Prêt à devenir une légende du clic ? Améliorez, renaissez et dominez." />
+    <!-- <meta name="twitter:image" content="/path/to/your/twitter-image.png" /> -->
+
   </head>
   <body>
     <div id="app"></div>
